@@ -345,6 +345,16 @@ unsigned int KeyMappingWindows::get_keysym(unsigned int p_code) {
 	return KEY_UNKNOWN;
 }
 
+unsigned int KeyMappingWindows::get_vk(unsigned int keysym) {
+	for (int i = 0; _vk_to_keycode[i].keysym != KEY_UNKNOWN; i++) {
+		if (_vk_to_keycode[i].keysym == keysym) {
+			return _vk_to_keycode[i].keycode;
+		}
+	}
+
+	return 0;
+}
+
 unsigned int KeyMappingWindows::get_scansym(unsigned int p_code, bool p_extended) {
 	unsigned int keycode = KEY_UNKNOWN;
 	for (int i = 0; _scancode_to_keycode[i].keysym != KEY_UNKNOWN; i++) {

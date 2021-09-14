@@ -1464,6 +1464,29 @@ String DisplayServerWindows::keyboard_get_layout_language(int p_index) const {
 	return String::utf16((const char16_t *)buf).substr(0, 2);
 }
 
+Key DisplayServerWindows::keyboard_get_keycode_from_physical(Key keycode) const {
+	unsigned int modifiers = keycode & KEY_MODIFIER_MASK;
+	unsigned int keycode_no_mod = keycode & KEY_CODE_MASK;
+	UINT vk = (UINT)KeyMappingWindows::get_vk(keycode_no_mod);
+
+	HKL cur_layout = GetKeyboardLayout(0);
+	UINT p_code = MapVirtualKeyEx(vk, MAPVK_VK_TO_VSC_EX, cur_layout);
+
+	// Apparently bugged output for PAUSE and NUMLOCK is a well-known behavior
+    if (p_code == 0x45) {
+        return KEY_NUMLOCK;
+    } else if (p_code == 0xE11D) {
+        return KEY_PAUSE;
+    }
+
+	// Theoretically just the range check here should be enough,
+	// but MapVirtualKey does not seem to discriminate
+	// between, for example, VK_UP and VK_NUMPAD8.
+	// This is a workaround, but should work for the vast majority of popular layouts.
+	bool extended = p_code > 0xFF || KeyMappingWindows::is_extended_key(vk);
+	return (Key)(KeyMappingWindows::get_scansym(p_code & 0xFF, extended) | modifiers);
+}
+
 String _get_full_layout_name_from_registry(HKL p_layout) {
 	String id = "SYSTEM\\CurrentControlSet\\Control\\Keyboard Layouts\\" + String::num_int64((int64_t)p_layout, 16, false).lpad(8, "0");
 	String ret;
