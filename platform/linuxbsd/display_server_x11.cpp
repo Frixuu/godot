@@ -2068,6 +2068,17 @@ String DisplayServerX11::keyboard_get_layout_name(int p_index) const {
 	return ret;
 }
 
+Key DisplayServerX11::keyboard_get_keycode_from_physical(Key p_keycode) const {
+	unsigned int modifiers = p_keycode & KEY_MODIFIER_MASK;
+	unsigned int keycode_no_mod = p_keycode & KEY_CODE_MASK;
+	unsigned int xkeycode = KeyMappingX11::get_xlibcode((Key)keycode_no_mod);
+	KeySym xkeysym = XkbKeycodeToKeysym(x11_display, xkeycode, 0, 0);
+	if (xkeysym >= 'a' && xkeysym <= 'z') {
+		xkeysym -= ('a' - 'A');
+	}
+	return (Key)(KeyMappingX11::get_keycode(xkeysym) | modifiers);
+}
+
 DisplayServerX11::Property DisplayServerX11::_read_property(Display *p_display, Window p_window, Atom p_property) {
 	Atom actual_type = None;
 	int actual_format = 0;
